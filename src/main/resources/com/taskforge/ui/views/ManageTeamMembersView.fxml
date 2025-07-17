@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.taskforge.ui.controllers.ManageTeamMembersController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+    <children>
+        <Label text="Manage Team Members">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
+        </Label>
+        <Label fx:id="teamNameLabel" text="Team: [Team Name]" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+        <!-- Add Member Section -->
+        <VBox spacing="10.0" alignment="TOP_LEFT" style="-fx-border-color: #cccccc; -fx-border-width: 1; -fx-padding: 15; -fx-background-color: #f8f8f8; -fx-border-radius: 5;">
+            <Label text="Add New Member" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+            <GridPane hgap="10.0" vgap="10.0">
+                <Label text="User (Username):" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                <ChoiceBox fx:id="addMemberUserChoiceBox" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                <Label text="Role:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <ChoiceBox fx:id="addMemberRoleChoiceBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            </GridPane>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Button text="Invite Member" onAction="#handleInviteMember" />
+            </HBox>
+            <Label fx:id="addMemberMessageLabel" textFill="RED" wrapText="true" />
+        </VBox>
+
+        <!-- Current Members List -->
+        <VBox spacing="10.0" alignment="TOP_LEFT" style="-fx-border-color: #cccccc; -fx-border-width: 1; -fx-padding: 15; -fx-background-color: #f8f8f8; -fx-border-radius: 5;">
+            <Label text="Current Members" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+            <ListView fx:id="membersListView" prefHeight="200.0" />
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Button text="Remove Selected Member" onAction="#handleRemoveMember" />
+                <Button text="Change Role" onAction="#handleChangeRole" />
+            </HBox>
+            <Label fx:id="membersListMessageLabel" textFill="RED" wrapText="true" />
+        </VBox>
+
+        <HBox alignment="CENTER" spacing="10.0">
+            <Button text="Close" onAction="#handleClose" />
+        </HBox>
+    </children>
+</VBox>
