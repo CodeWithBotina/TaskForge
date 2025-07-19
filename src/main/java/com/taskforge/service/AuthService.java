@@ -105,12 +105,17 @@ public class AuthService {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            // Check the plain password against the stored hash
-            if (SecurityUtil.checkPassword(plainPassword, user.getPasswordHash())) {
-                System.out.println("User authenticated successfully: " + user.getUsername());
-                return Optional.of(user);
-            } else {
-                System.err.println("Authentication failed: Incorrect password for user '" + username + "'.");
+            try {
+                // Check the plain password against the stored hash
+                if (SecurityUtil.checkPassword(plainPassword, user.getPasswordHash())) {
+                    System.out.println("User authenticated successfully: " + user.getUsername());
+                    return Optional.of(user);
+                } else {
+                    System.err.println("Authentication failed: Incorrect password for user '" + username + "'.");
+                    return Optional.empty();
+                }
+            } catch (RuntimeException e) { // Catch RuntimeException from SecurityUtil.checkPassword
+                System.err.println("Authentication failed due to password check error: " + e.getMessage());
                 return Optional.empty();
             }
         } else {

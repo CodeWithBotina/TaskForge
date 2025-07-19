@@ -34,7 +34,11 @@ public class DatabaseManager {
      * @throws SQLException If a database access error occurs (e.g., driver not found, invalid URL).
      */
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL);
+        Connection conn = DriverManager.getConnection(URL);
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("PRAGMA foreign_keys = ON");
+        }
+        return conn;
     }
 
     /**

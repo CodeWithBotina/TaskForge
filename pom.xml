@@ -13,8 +13,12 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <javafx.version>22</javafx.version>
-        <!-- Retaining 0.0.8 for javafx-maven-plugin as it's known to be resolvable -->
         <javafx.plugin.version>0.0.8</javafx.plugin.version>
+        <!-- Test Dependencies Versions -->
+        <junit.jupiter.version>5.10.0</junit.jupiter.version>
+        <!-- UPDATED MOCKITO VERSION FOR JDK 24 COMPATIBILITY -->
+        <mockito.version>5.12.0</mockito.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
     </properties>
 
     <dependencies>
@@ -45,6 +49,38 @@
             <version>2.0.13</version>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>4.0.16-alpha</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -65,15 +101,6 @@
                 <version>${javafx.plugin.version}</version>
                 <configuration>
                     <mainClass>com.taskforge.ui.MainApp</mainClass>
-                    <jlinkImageName>TaskForge-Runtime</jlinkImageName>
-                    <jlinkZipName>TaskForge-Windows</jlinkZipName>
-                    <launcher>TaskForge</launcher>
-                    <options>
-                        <option>--strip-debug</option>
-                        <option>--compress=2</option>
-                        <option>--no-header-files</option>
-                        <option>--no-man-pages</option>
-                    </options>
                     <runtimePathOption>MODULEPATH</runtimePathOption>
                 </configuration>
                 <executions>
@@ -89,6 +116,17 @@
                         <goals>
                             <goal>jlink</goal>
                         </goals>
+                        <configuration>
+                            <jlinkImageName>TaskForge-Runtime</jlinkImageName>
+                            <jlinkZipName>TaskForge-Windows</jlinkZipName>
+                            <launcher>TaskForge</launcher>
+                            <options>
+                                <option>--strip-debug</option>
+                                <option>--compress=2</option>
+                                <option>--no-header-files</option>
+                                <option>--no-man-pages</option>
+                            </options>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -141,26 +179,21 @@
                     <appVersion>1.0.0</appVersion>
                     <vendor>TaskForge Team</vendor>
                     <mainClass>com.taskforge.ui.MainApp</mainClass>
-                    <!-- Corrected: Use 'input' to specify application content for jpackage -->
                     <input>${project.build.directory}</input>
-                    <!-- mainJar is now relative to the 'input' directory -->
                     <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
                     <destination>${project.build.directory}/installers</destination>
                     <type>EXE</type>
                     <winShortcut>true</winShortcut>
                     <winMenu>true</winMenu>
+                    <icon>src/main/resources/icon.ico</icon>
                     <javaOptions>
                         <javaOption>-Xms256m</javaOption>
                         <javaOption>-Xmx1024m</javaOption>
                         <javaOption>-Dfile.encoding=UTF-8</javaOption>
                         <javaOption>-DredirectErrorOutputTo=TaskForge_error.log</javaOption>
                     </javaOptions>
-                    <!-- Add modules if they are not part of the jlink image but needed by jpackage directly -->
                     <addModules>
-                        <!-- Add any specific modules required by jpackage that aren't implicitly included -->
-                        <!-- Example: <addModule>java.sql</addModule> if not automatically detected -->
                     </addModules>
-                    <!-- Specify the jlink image to be used by jpackage -->
                     <runtimeImage>${project.build.directory}/TaskForge-Runtime</runtimeImage>
                 </configuration>
                 <executions>
@@ -172,6 +205,16 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Maven Surefire Plugin for running tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+                <configuration>
+                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+                </configuration>
             </plugin>
 
             <!-- Maven Javadoc Plugin for generating API documentation -->
@@ -188,7 +231,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 </project>

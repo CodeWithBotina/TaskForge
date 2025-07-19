@@ -25,13 +25,13 @@ import java.util.Optional;
 public class LoginController {
 
     @FXML
-    private TextField usernameField;
+    TextField usernameField;
     @FXML
-    private PasswordField passwordField;
+    PasswordField passwordField;
     @FXML
     private Button loginButton;
     @FXML
-    private Label messageLabel;
+    Label messageLabel;
 
     private AuthService authService;
 
@@ -50,7 +50,7 @@ public class LoginController {
      * Attempts to authenticate the user using the provided username and password.
      */
     @FXML
-    private void handleLogin() {
+    void handleLogin() {
         String username = usernameField.getText();
         String password = passwordField.getText();
 

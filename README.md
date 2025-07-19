@@ -368,6 +368,14 @@ To run TaskForge, you need:
    ```bash
    mvn javafx:run
    ```
+4. Create installable for Windows:
+   ```bash
+   mvn clean package org.panteleyev:jpackage-maven-plugin:jpackage -U
+   ```
+5. Running unit tests:
+   ```bash
+   mvn test
+   ```
 
 ### 2. Login and Registration
 **Registration:**

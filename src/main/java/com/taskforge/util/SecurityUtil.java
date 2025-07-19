@@ -84,11 +84,12 @@ public class SecurityUtil {
             throw new IllegalArgumentException("Hashed password cannot be null or empty for checking.");
         }
 
+        String[] parts = storedHashedPassword.split(":");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid stored hashed password format.");
+        }
+
         try {
-            String[] parts = storedHashedPassword.split(":");
-            if (parts.length != 2) {
-                throw new IllegalArgumentException("Invalid stored hashed password format.");
-            }
             byte[] salt = Base64.getDecoder().decode(parts[0]);
             byte[] storedHash = Base64.getDecoder().decode(parts[1]);
 
@@ -96,12 +97,13 @@ public class SecurityUtil {
             SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             byte[] enteredHash = skf.generateSecret(spec).getEncoded();
 
-            // Compare the two hashes byte by byte to prevent timing attacks
             return java.security.MessageDigest.isEqual(storedHash, enteredHash);
 
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid stored hashed password format.", e);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             System.err.println("Error checking password: " + e.getMessage());
-            return false; // Authentication failed due to internal error or invalid format
+            return false;
         }
     }
 }

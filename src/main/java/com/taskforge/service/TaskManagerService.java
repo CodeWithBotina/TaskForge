@@ -112,6 +112,23 @@ public class TaskManagerService {
             }
         }
 
+        // Business rule: For RESTRICTED tasks, assigned user must be in the same team as the creator (if assigned to someone else)
+        if (visibility == Visibility.RESTRICTED && assignedTo != null && assignedTo.getId() != creatorId) {
+            if (!userManagerService.areUsersInSameTeam(creatorId, assignedTo.getId())) {
+                System.err.println("Task creation failed: For RESTRICTED visibility, assigned user must be in the same team as the creator.");
+                return Optional.empty();
+            }
+        }
+
+        // Business rule: If a project is assigned, the creator must be a member of the project's team
+        if (project != null) {
+            if (!userManagerService.isUserMemberOfTeam(creatorId, project.getTeam().getId())) {
+                System.err.println("Task creation failed: Creator must be a member of the project's team.");
+                return Optional.empty();
+            }
+        }
+
+
         // Default status for new tasks
         Task newTask = new Task(title, description, dueDate, priority, Status.PENDING, assignedTo, project, visibility, creatorOptional.get());
         Task createdTask = taskDAO.createTask(newTask);
@@ -167,6 +184,18 @@ public class TaskManagerService {
     }
 
     /**
+     * Retrieves all tasks associated with a specific project.
+     *
+     * @param projectId The ID of the project.
+     * @param currentUserId The ID of the currently logged-in user (for visibility checks).
+     * @return A list of Task objects associated with the given project that are visible to the current user.
+     */
+    public List<Task> getTasksByProject(int projectId, int currentUserId) {
+        List<Task> tasks = taskDAO.getTasksByProjectId(projectId);
+        return filterTasksByVisibility(tasks, currentUserId);
+    }
+
+    /**
      * Filters a list of tasks based on the visibility rules for a given user.
      *
      * @param tasks The list of tasks to filter.
@@ -190,7 +219,8 @@ public class TaskManagerService {
                             return true; // Public tasks are visible to everyone
                         case RESTRICTED:
                             // Restricted tasks are visible if current user shares a team with creator
-                            return userManagerService.areUsersInSameTeam(currentUserId, task.getCreator().getId());
+                            // Ensure creator exists before checking team membership
+                            return task.getCreator() != null && userManagerService.areUsersInSameTeam(currentUserId, task.getCreator().getId());
                         case PRIVATE:
                             // Private tasks are only visible to creator (already handled above)
                             return false;
@@ -227,9 +257,7 @@ public class TaskManagerService {
 
         Task taskToUpdate = existingTaskOptional.get();
 
-        // Permission check: Only creator or a team owner (if task is team-related) can update
-        // For simplicity, let's say only the creator can update for now.
-        // More complex rules (e.g., team owners, project managers) would go here.
+        // Permission check: Only creator can update
         if (taskToUpdate.getCreator().getId() != currentUserId) {
             System.err.println("Task update failed: User " + currentUserId + " is not the creator of task " + taskId + ".");
             return false;
@@ -252,6 +280,13 @@ public class TaskManagerService {
                 System.err.println("Task update failed: New assigned user with ID " + assignedToUserId + " not found.");
                 return false;
             }
+            // Business rule: For RESTRICTED tasks, assigned user must be in the same team as the creator (if assigned to someone else)
+            if (visibility == Visibility.RESTRICTED && newAssignedTo.getId() != currentUserId) { // currentUserId is the updater, who is also the creator
+                if (!userManagerService.areUsersInSameTeam(currentUserId, newAssignedTo.getId())) {
+                    System.err.println("Task update failed: For RESTRICTED visibility, assigned user must be in the same team as the creator.");
+                    return false;
+                }
+            }
         }
         taskToUpdate.setAssignedTo(newAssignedTo);
 
@@ -261,6 +296,11 @@ public class TaskManagerService {
             newProject = projectDAO.getProjectById(projectId).orElse(null);
             if (newProject == null) {
                 System.err.println("Task update failed: New project with ID " + projectId + " not found.");
+                return false;
+            }
+            // Business rule: Creator must be a member of the new project's team
+            if (!userManagerService.isUserMemberOfTeam(currentUserId, newProject.getTeam().getId())) {
+                System.err.println("Task update failed: Creator must be a member of the new project's team.");
                 return false;
             }
         }
